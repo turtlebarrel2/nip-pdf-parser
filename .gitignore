@@ -1,0 +1,4 @@
+*.json
+*.pdf
+tmp_pdfs/*
+__pycache__/*.pyc
