@@ -4,6 +4,7 @@ import requests
 import hashlib
 import json
 import glob
+import sys
 
 from pdf_to_context import extract_money_contexts_from_mineru
 from context_to_json import convert_contexts
@@ -24,9 +25,30 @@ def _hashed_filename(url: str) -> str:
     """
     Create a unique local filename for each URL to avoid collisions/overwrites.
     """
+    #digest = hashlib.sha256(url.encode()).hexdigest()[:16]
+    #tail = url.split("/")[-1] or "document.pdf"
+    #return os.path.join(TEMP_DIR, f"{digest}__{tail}")
+
+    """
+    Create a unique local filename. 
+    TRUNCATES the readable name to 20 chars to prevent Windows Path Limit errors.
+    """
     digest = hashlib.sha256(url.encode()).hexdigest()[:16]
-    tail = url.split("/")[-1] or "document.pdf"
-    return os.path.join(TEMP_DIR, f"{digest}__{tail}")
+    
+    # Get original filename
+    raw_tail = url.split("/")[-1] or "doc.pdf"
+    
+    # Split name and extension
+    name, ext = os.path.splitext(raw_tail)
+    
+    # Clean non-alphanumeric chars to be safe and Shorten to max 20 chars
+    safe_name = "".join(c for c in name if c.isalnum() or c in ('_', '-'))[:20]
+    
+    if not safe_name:
+        safe_name = "doc"
+
+    # New format: 16charHash__20charName.pdf (Total ~40 chars max)
+    return os.path.join(TEMP_DIR, f"{digest}__{safe_name}{ext}")
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -131,7 +153,8 @@ def run_mineru(pdf_path: str) -> str | None:
 
     print(f"🧠 Running MinerU fresh on: {pdf_path}")
     try:
-        subprocess.run(["mineru", "-p", pdf_path, "-o", output_dir], check=True)
+        # specific entry point for mineru
+        subprocess.run([sys.executable, "-m", "mineru.cli.client", "-p", pdf_path, "-o", output_dir], check=True)
     except subprocess.CalledProcessError:
         print(f"❌ MinerU failed on: {pdf_path}")
         return None

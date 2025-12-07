@@ -13,7 +13,7 @@ from jsonschema import validate, ValidationError
 
 DEBUG = True
 
-WORKER_NUM = 2
+WORKER_NUM = 2#0
 
 def debug(*args):
     if DEBUG:

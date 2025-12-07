@@ -84,7 +84,7 @@ def _add_safely(contexts, page_idx, text):
 
 
 def extract_money_contexts_from_mineru(json_path: str):
-    with open(json_path, "r") as f:
+    with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     pages_text = {}
